@@ -1,0 +1,21 @@
+{
+    "agents" : "project/agents",
+    "documents" : "project/docs",
+    "home" : "project/home",
+    "provider" : "stdin",
+    "mode" : "PROMPT",
+    "prompt" : "",
+    "result" : "",
+    "stack": [
+        {
+            "agentName" : "Gus",
+            "goal" : "Write a program in JavaScript",
+            "cache" : []
+        },
+        {
+            "agentName" : "Bart",
+            "goal" : "Write a function in JavaScript",
+            "cache" : []
+        }
+    ]
+}

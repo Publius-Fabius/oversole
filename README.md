@@ -1,2 +1,2 @@
 # oversole
-AI Agency Meta-Framework
+AI Agents for NodeJS!
