@@ -1,0 +1,6 @@
+
+cache = 'CACHE', '\n', FILENAME, *('\n', FILENAME)
+decache = 'DECACHE', '\n', FILENAME, *('\n', FILENAME)
+call = 'CALL', '\n', AGENTNAME, '\n', *(UTF8)
+return = 'RETURN', '\n', *(UTF8)
+yield = 'YIELD', '\n', SHELL_COMMAND

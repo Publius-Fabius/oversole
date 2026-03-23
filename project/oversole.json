@@ -1,7 +1,8 @@
 {
     "agents" : "project/agents",
-    "documents" : "project/docs",
+    "ontology" : "project/ontology",
     "home" : "project/home",
+    "program" : "project/PROGRAM.md",
     "provider" : "stdin",
     "mode" : "PROMPT",
     "prompt" : "",

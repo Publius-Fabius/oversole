@@ -23,8 +23,6 @@ class Oversole {
     }
 
     initProvider() {
-        console.assert(this.model);
-        console.assert(this.model.provider);
         switch(this.model.provider) {
             case "stdin" :
                 this.provider = new StdinProvider();
@@ -52,8 +50,6 @@ class Oversole {
     }
     
     getTopTask() {
-        console.assert(this.model.stack);
-        console.assert(this.model.stack instanceof Array);
         const stack = this.model.stack;
         if(stack.length == 0) {
             throw new Error(`Task stack is empty`);
@@ -62,26 +58,14 @@ class Oversole {
     }
 
     prompt() {
-        console.assert(this.model);
-        console.assert(this.model.agents);
-        console.assert(this.model.prompt);
-        console.assert(this.model.ontology);
-        console.assert(this.model.work);
-
         const task = getTopTask();
-
-        console.assert(task.agentName);
-        
         const agentP = path.resolve(this.model.agents, task.agentName);
         const agentHistoryP = path.resolve(agentP, "history.json");
         const agentHistory = this.loadJSON(agentHistoryP);
         const agentInstructionP = path.resolve(agentP, "INSTRUCTION.md");
         const agentInstruction = this.loadText(agentInstructionP);
+        const program = this.loadText(this.model.program);
         const taskGoal = task.goal;
-
-        console.assert(agentHistory instanceof Array);
-        console.assert(task.goal instanceof Object);
-        console.assert(task.cache);
 
         let cache = "";
         for(let filePath of task.cache) {
@@ -95,12 +79,18 @@ ${this.loadText(filePath)}
 `<INSTRUCTION>
 ${agentInstruction}
 </INSTRUCTION>
+<PROGRAM>
+${program}
+</PROGRAM>
 <PATHS>
 projectRoot=${this.filePath}
 ontology=${this.model.ontology}
 agents=${this.model.agents}
 work=${this.model.work}
 </PATHS>
+<CACHE>
+${cache}
+</CACHE>
 <GOAL>
 ${taskGoal}
 </GOAL>
@@ -135,16 +125,12 @@ ${taskGoal}
      * @param {String} text 
      */
     doCall(text) {
-        console.assert(this.model);
-        console.assert(this.model.agents);
-
         const nlIndex = text.indexOf("\n");
         if(!nlIndex) {
             throw new Error("CALL response had no AGENT_NAME");
         }
-        const agentName = text.slice(0, nlIndex);
+        const agentName = text.slice(0, nlIndex).trim();
         const goal = text.slice(nlIndex, text.length);
-
         this.model.tasks.push({ agentName, goal, cache : [] });
         this.model.prompt = goal;
         this.model.result = "";
@@ -165,10 +151,9 @@ ${taskGoal}
      * @param {String} text 
      */
     doReturn(text) {
-        console.assert(this.model);
-        console.assert(this.model.tasks);
-        this.model.prompt = text;
         this.model.tasks.pop();
+        this.model.prompt = text;
+        this.model.result = "";
         this.model.mode = "PROMPT";
         this.saveJSON(this.model, this.filePath);
     }
@@ -184,9 +169,7 @@ ${taskGoal}
      * @param {String} text 
      */
     doYield(text) {
-        console.assert(this.model);
         const command = text.trim();
-
         try {
             const output = execSync(command, { 
                 encoding: 'utf8',
@@ -196,15 +179,60 @@ ${taskGoal}
         } catch (error) {
             this.model.prompt = `ERROR executing command:\n${error.message}`;
         }
+        this.model.result = "";
+        this.model.mode = "PROMPT";
+        this.saveJSON(this.model, this.filePath);
+    }
 
+    /**
+     * Agent should issue cache response like this:
+     * 
+     *  CACHE
+     *  ${FILE}
+     *  
+     * Multiple files can be cached at once, each separated by a new line.
+     * 
+     * Example: response = "CACHE\nproject/RULES.md\nproject/run.js"
+     * 
+     * @param {String} text 
+     */
+    doCache(text) {
+        const lines = text.trim().split("\n");
+        const task = this.getTopTask();
+        for(line of lines) {
+            task.cache.push(line);
+        }
+        this.model.prompt = "CACHED";
+        this.model.result = "";
+        this.model.mode = "PROMPT";
+        this.saveJSON(this.model, this.filePath);
+    }
+
+    /**
+     * Agent should issue decache response like this:
+     * 
+     *  CACHE
+     *  ${FILE}
+     *  
+     * Multiple files can be decached at once, each separated by a new line.
+     * 
+     * Example: response = "CACHE\nproject/RULES.md\nproject/run.js"
+     * 
+     * @param {String} text 
+     */
+    doDecache(text) {
+        const lines = text.trim().split("\n");
+        const task = this.getTopTask();
+        for(line of lines) {
+            task.cache = task.cache.filter(x => x != line);
+        }
+        this.model.prompt = "DECACHED";
+        this.model.result = "";
         this.model.mode = "PROMPT";
         this.saveJSON(this.model, this.filePath);
     }
 
     evaluate() {
-        console.assert(this.model);
-        console.assert(this.model.result);
-
         const text = this.model.result;
 
         const nlIndex = text.indexOf("\n");
@@ -220,14 +248,16 @@ ${taskGoal}
             return this.doReturn(rest);
         } else if(fstLine.startsWith("YIELD")) {
             return this.doYield(rest);
+        } else if(fstLine.startsWith("CACHE")) {
+            return this.doCache(rest);
+        } else if(fstLine.startsWith("DECACHE")) {
+            return this.doDecache(rest);
         } else {
             throw new Error("Response type was invalid");
         }
     }
 
     async update() {
-        console.assert(this.model);
-        console.assert(this.model.mode);
         switch(this.model.mode) {
             case "EVALUATE": 
                 return this.evaluate();
@@ -238,3 +268,5 @@ ${taskGoal}
         }
     }
 };
+
+module.exports = Oversole;
