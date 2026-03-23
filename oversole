@@ -1,5 +1,6 @@
-//const Oversole = require('./Oversole.js');
+const Oversole = require('./Oversole.js');
 const fs = require('node:fs');
+const { argv } = require('node:process');
 
 try {
     const quotes = fs.readFileSync("quotes.txt").toString().trim().split("\n");
@@ -7,4 +8,14 @@ try {
     console.log(`Oversole whispers this into your ear: ${quotes[index]}`);
 } catch(err) { }
 
-//new Oversole().update();
+if(!argv[2]) {
+    let runner = async () => {
+        await new Oversole("project/oversole.json").update();
+    };
+    runner();
+} else {
+    let runner = async () => {
+        await new Oversole(argv[2]).update();
+    };
+    runner();
+}

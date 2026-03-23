@@ -1,22 +1,18 @@
 {
-    "agents" : "project/agents",
-    "ontology" : "project/ontology",
-    "home" : "project/home",
-    "program" : "project/PROGRAM.md",
-    "provider" : "stdin",
-    "mode" : "PROMPT",
-    "prompt" : "",
-    "result" : "",
-    "stack": [
+    "agents": "project/agents",
+    "atlas": "project/atlas",
+    "home": "project/home",
+    "tmp": "project/tmp",
+    "program": "project/PROGRAM.md",
+    "provider": "stdin",
+    "mode": "PROMPT",
+    "prompt": "Yo!\n",
+    "result": "",
+    "tasks": [
         {
-            "agentName" : "Gus",
-            "goal" : "Write a program in JavaScript",
-            "cache" : []
-        },
-        {
-            "agentName" : "Bart",
-            "goal" : "Write a function in JavaScript",
-            "cache" : []
+            "agentName": "Gus",
+            "goal": "Write a program in JavaScript",
+            "cache": []
         }
     ]
 }
