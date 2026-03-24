@@ -94,12 +94,12 @@ ${await this.loadText(filePath)}
             log += `${entry}\n`;
 
         const instruction = 
-`<AGENT_BIOGRAPHY>
+`<PROGRAM>
+${program}
+</PROGRAM>
+<AGENT_BIOGRAPHY>
 ${agentBio}
 </AGENT_BIOGRAPHY>
-<PROJECT_PROGRAM>
-${program}
-</PROJECT_PROGRAM>
 <PROJECT_PATHS>
 atlas=${this.model.atlas}
 agents=${this.model.agents}
