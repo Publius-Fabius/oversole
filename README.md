@@ -4,7 +4,7 @@ Oversole is a lightweight, state-driven agentic framework designed to manage hie
 
 By treating the agent interaction as a state machine (alternating between PROMPT and EVALUATE), Oversole provides a structured way to handle complex, long-running workflows with a human-in-the-loop or automated backend.
 
-The hierarchical call system acts as a biological "working memory" filter, solving the context window problem by ensuring that the LLM only processes information relevant to its immediate sub-task rather than the entire project at once. In a traditional flat architecture, sending a massive codebase plus a long history of instructions quickly exhausts the token limit, leading to "lost in the middle" phenomena or outright failure. By nesting tasks, Oversole allows a "Manager" agent to hold the high-level strategy while "Worker" agents handle granular details. When a worker is called, it only receives the specific goal and the files it needs to see (via the CACHE command), keeping the prompt lean and focused.
+The hierarchical call system acts as a "working memory" filter, solving the context window problem by ensuring that the LLM only processes information relevant to its immediate sub-task rather than the entire project at once. In a traditional flat architecture, sending a massive codebase plus a long history of instructions quickly exhausts the token limit, leading to "lost in the middle" phenomena or outright failure. By nesting tasks, Oversole allows a "Manager" agent to hold the high-level strategy while "Worker" agents handle granular details. When a worker is called, it only receives the specific goal and the files it needs to see (via the CACHE command), keeping the prompt lean and focused.
 
 This approach effectively turns a linear context window into a tree structure. Once a sub-agent completes its task and issues a RETURN, the heavy technical details of that sub-task are purged from the active context, replaced only by a concise summary of the result. This "pop" from the stack prevents the context window from being cluttered with expired data. It allows the system to scale in complexity - not by building a bigger window, but by intelligently swapping what is inside that window based on the current depth of the task hierarchy.
 
@@ -31,6 +31,14 @@ YIELD: Executes a shell command.
 CACHE: Adds a file's content to the prompt context.
 DECACHE: Removes a file from the prompt context.
 LOG: Appends a persistent thought or note to the agent's log.
+
+EBNF
+    cache = 'CACHE', '\n', FILE_NAME, *('\n', FILE_NAME)
+    decache = 'DECACHE', '\n', FILE_NAME, *('\n', FILE_NAME)
+    call = 'CALL', '\n', AGENT_NAME, '\n', *(UTF8)
+    return = 'RETURN', '\n', *(UTF8)
+    yield = 'YIELD', '\n', SHELL_COMMAND
+    log = 'LOG', '\n', *(UTF8)
 ```
 
 ### Directory Structure
