@@ -1,0 +1,1 @@
+try,catch on cache/uncache with bad file names
