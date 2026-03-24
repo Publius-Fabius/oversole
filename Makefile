@@ -1,4 +1,4 @@
-CYBERNETICS.pdf : CYBERNETICS.md
-	pandoc CYBERNETICS.md -o CYBERNETICS.pdf
+README.html : README.md
+	pandoc README.md -o README.html
 clean:
-	rm CYBERNETICS.pdf || true
+	rm README.html || true

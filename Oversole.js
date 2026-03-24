@@ -12,7 +12,7 @@ class StdinProvider {
 ${instruction}
 PROMPT:
 ${prompt}
-RESPONSE:`);
+RESPONSE (type END on a newline to finish the interaction):`);
     
         const rl = readline.createInterface(stdin, stdout);
         
