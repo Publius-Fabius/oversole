@@ -24,18 +24,20 @@ Agents communicate with the Oversole engine by starting their response with a sp
 
 ## Protocol 
 
+```
 CALL: Spawns a new sub-agent/task.
 RETURN: Completes current task and returns data to parent.
 YIELD: Executes a shell command.
 CACHE: Adds a file's content to the prompt context.
 DECACHE: Removes a file from the prompt context.
 LOG: Appends a persistent thought or note to the agent's log.
+```
 
 ### Directory Structure
 
 Oversole expects a specific directory structure to manage its state:
 
-'''
+```
 .
 ├── oversole.json       # The core state machine and project configuration
 ├── agents/
@@ -44,12 +46,12 @@ Oversole expects a specific directory structure to manage its state:
 │       ├── history.json # Interaction history
 │       └── log.json     # Persistent agent notes
 └── ... (work, tmp, and atlas directories)
-'''
+```
 
 ### Using the stdin Provider
 
 When using the stdin provider, Oversole will output the full INSTRUCTION (including biographies, logs, and cached files) to your terminal.
 
-    Type your response manually.
+1) Type your response manually.
 
-    To finish a multi-line response, type END on a new line.
+2) To finish a multi-line response, type END on a new line.
