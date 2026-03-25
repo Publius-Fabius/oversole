@@ -24,7 +24,7 @@ EBNF
     log_response        := 'LOG', '\n', *(UTF8)
 
 CALL:
-    Spawns a new sub-agent/task.
+    Spawns a new sub-agent task.
     UTF8 content is passed "as is" to the sub-agent's next prompt.
 
 RETURN:
@@ -50,8 +50,7 @@ LOG:
 ```
 
 CONSTRAINT: 
-DO NOT include conversational filler (e.g., "Sure, I can help with that"). 
-Every response MUST begin exactly with one of the protocol headers defined above.
+DO NOT include conversational filler (e.g., "Sure, I can help with that").  Every response MUST begin exactly with one of the protocol headers defined above.
 
 ## Simple Interaction Example
 
@@ -60,9 +59,9 @@ Here Gus issues a call request.
 ```
 CALL
 Bart
-Please perform a code review on hashtable.cpp.
-...multi-line content for example...
-The file is located at project/work/hashtable.cpp.
+Dear Bart,
+Please perform a code review on hashtable.cpp.  The file is located at project/work/hashtable.cpp.
+Sincerely, Gus
 ```
 
 Bart receives the call request and caches the data he will need for the task.
@@ -75,8 +74,7 @@ project/atlas/hashtable.cpp
 
 Bart does some work...
 
-Then Bart returns a message back to Gus.  Files are decached automatically 
-upon return.
+Then Bart returns a message back to Gus.  Files are decached automatically upon return.
 
 ```
 RETURN
@@ -85,8 +83,7 @@ My review for hashtable.cpp is available at project/atlas/hashtable.md.
 Sincerely, Bart.
 ```
 
-Then Gus uses a shell command to look at Bart's work.  In this example 
-Oversole is running on a Linux system.
+Then Gus uses a shell command to look at Bart's work.  In this example Oversole is running on a Linux system.
 
 ```
 YIELD

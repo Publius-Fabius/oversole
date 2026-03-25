@@ -3,15 +3,20 @@
     "atlas": "project/atlas",
     "home": "project/home",
     "tmp": "project/tmp",
-    "program": "project/PROGRAM.md",
+    "protocol": "project/PROTOCOL.md",
     "provider": "stdin",
     "mode": "PROMPT",
-    "prompt": "Yo!\n",
+    "prompt": "",
     "result": "",
     "tasks": [
         {
             "agentName": "Gus",
             "goal": "Write a program in JavaScript",
+            "cache": []
+        },
+        {
+            "agentName": "Bart",
+            "goal": "Hello bart!\n",
             "cache": []
         }
     ]

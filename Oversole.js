@@ -8,11 +8,12 @@ class StdinProvider {
     async fetchResponse(instruction, prompt, history) {
 
         console.log(
-`INSTRUCTION:
+`### INSTRUCTION ###
 ${instruction}
-PROMPT:
+### PROMPT ###
 ${prompt}
-RESPONSE (type END on a newline to finish the interaction):`);
+### RESPONSE ###
+(type END on a newline to finish the interaction):`);
     
         const rl = readline.createInterface(stdin, stdout);
         
@@ -25,7 +26,7 @@ RESPONSE (type END on a newline to finish the interaction):`);
         }
         rl.close();
 
-        return text;
+        return text.slice(0, text.length - 1);
     }
 }
 
@@ -80,40 +81,58 @@ class Oversole {
         const agentBio = await this.loadText(agentBioP);
         const agentLogP = path.resolve(agentP, "log.json");
         const agentLog = await this.loadJSON(agentLogP);
-        const program = await this.loadText(this.model.program);
+        const protocol = await this.loadText(this.model.protocol);
         const taskGoal = task.goal;
 
         let cache = "";
-        for(let filePath of task.cache) cache += 
+        for(let filePath of task.cache) {
+            let content;
+            try {
+                content = await this.loadText(filePath);
+            } catch(err) {
+                content = err.message;
+            }
+            cache += 
 `<CACHED_FILE path="${filePath}">
-${await this.loadText(filePath)}
+${content}
 </CACHED_FILE>
 `;
+        }
+            
         let log = "";
         for(let entry of agentLog) 
             log += `${entry}\n`;
 
+        let goals = "";
+        for(let n = 0; n < this.model.tasks.length; ++n) {
+            const task = this.model.tasks[n];
+            goals += 
+`<GOAL depth="${n}" agent="${task.agentName}">
+${task.goal}
+</GOAL>
+`;
+        }
         const instruction = 
-`<PROGRAM>
-${program}
-</PROGRAM>
-<AGENT_BIOGRAPHY>
+`<PROTOCOL>
+${protocol}
+</PROTOCOL>
+<BIOGRAPHY>
 ${agentBio}
-</AGENT_BIOGRAPHY>
-<PROJECT_PATHS>
+</BIOGRAPHY>
+<PATHS>
 atlas=${this.model.atlas}
 agents=${this.model.agents}
 work=${this.model.work}
 tmp=${this.model.tmp}
-</PROJECT_PATHS>
+</PATHS>
 ${cache}
 <LOG>
 ${log}
 </LOG>
-<CURRENT_GOAL>
-${taskGoal}
-</CURRENT_GOAL>\n`;
-
+<GOAL_STACK ordering="ROOT_TO_LEAF">
+${goals}
+</GOAL_STACK>
+`;
         const prompt = this.model.prompt;
         const result = await this.provider.fetchResponse(
             instruction,
@@ -145,8 +164,9 @@ ${taskGoal}
         if(nlIndex == -1) 
             throw new Error("CALL response had no AGENT_NAME");
         const agentName = text.slice(0, nlIndex).trim();
-        const goal = text.slice(nlIndex, text.length);
+        const goal = text.slice(nlIndex + 1, text.length);
         this.model.tasks.push({ agentName, goal, cache : [] });
+        console.log(`CALL\n${agentName}\n${goal}`);
         this.model.prompt = goal;
         this.model.result = "";
         this.model.mode = "PROMPT";
@@ -168,6 +188,7 @@ ${taskGoal}
     async doReturn(text) {
         this.model.tasks.pop();
         this.model.prompt = text;
+        console.log(`RETURN\n${text}`);
         this.model.result = "";
         this.model.mode = "PROMPT";
         await this.saveJSON(this.model, this.filePath);
@@ -210,6 +231,8 @@ Choose y/n:`);
             this.model.prompt = 
                 `ERROR executing command:\n${error.message}`;
         }
+
+        console.log(this.model.prompt);
         this.model.result = "";
         this.model.mode = "PROMPT";
         this.saveJSON(this.model, this.filePath);
@@ -230,8 +253,11 @@ Choose y/n:`);
     async doCache(text) {
         const lines = text.trim().split("\n");
         const task = this.getTopTask();
-        for(const line of lines) 
+        console.log("CACHE");
+        for(const line of lines) {
+            console.log(line);
             task.cache.push(path.resolve(line));
+        }
         this.model.prompt = "CACHED";
         this.model.result = "";
         this.model.mode = "PROMPT";
@@ -253,9 +279,11 @@ Choose y/n:`);
     async doDecache(text) {
         const lines = text.trim().split("\n");
         const task = this.getTopTask();
-        for(const line of lines) 
-            task.cache = task.cache.filter(x => 
-                x != path.resolve(line));
+        console.log(`DECACHE`);
+        for(const line of lines) {
+            console.log(line);
+            task.cache = task.cache.filter(x => x != path.resolve(line));
+        }
         this.model.prompt = "DECACHED";
         this.model.result = "";
         this.model.mode = "PROMPT";
@@ -280,6 +308,7 @@ Choose y/n:`);
         const log = await this.loadJSON(agentLogP);
         log.push(text);
         await this.saveJSON(log, agentLogP);
+        console.log(`LOG\n${text}`);
         this.model.prompt = "LOGGED";
         this.model.result = "";
         this.model.mode = "PROMPT";
@@ -295,7 +324,6 @@ Choose y/n:`);
             throw new Error("No response type found");
         const fstLine = text.slice(0, nlIndex);
         const rest = text.slice(nlIndex + 1, text.length);
-
         if(fstLine.startsWith("CALL")) 
             return await this.doCall(rest);
         else if(fstLine.startsWith("RETURN")) 
@@ -317,7 +345,6 @@ Choose y/n:`);
 
         this.model = await this.loadJSON(path.resolve(this.filePath));
         this.initProvider();
-
         switch(this.model.mode) {
             case "EVALUATE": 
                 return await this.evaluate();
